@@ -1,0 +1,17 @@
+message:
+  # if no huskhomessign.use
+  no-use-permission: "&cYou don't have permission to use warp signs."
+  invalid-warp: "&cCan't find this destination."
+sign:
+  # When the line of a sign changed to this key-word,
+  # we will try to create a warp sign. (If player has huskhomessign.create)
+  create:
+    key-word: "[warp]"
+    # line's range is between 1-4
+    key-word-line: 1
+  # If a sign has following key-word in line number,
+  # it will be seeing as a warp sign.
+  use:
+    key-word: "&1[Warp]"
+    key-word-line: 2
+

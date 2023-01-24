@@ -1,0 +1,14 @@
+name: HuskHomesSign
+version: '${project.version}'
+main: ink.magma.huskhomessign.HuskHomesSign
+api-version: 1.18
+depend: [ HuskHomes ]
+authors: [ MagmaBlock ]
+description: A addon for HuskHomes to allow teleport by using a sign
+commands:
+  huskhomessign:
+    usage: "/huskhomessign reload"
+    permission: "huskhomessign.admin"
+permissions:
+  huskhomessign.admin:
+    default: op
