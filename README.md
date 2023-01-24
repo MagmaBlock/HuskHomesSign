@@ -13,4 +13,4 @@ Player with `huskhomessign.use` will be able to use sign to teleport.
 ## Custom
 Messages and Sign displays can be customized in config.yml.
 
-![Preview](https://www.spigotmc.org/attachments/upload_2023-1-24_17-26-23-png.748390/)
+![image](https://user-images.githubusercontent.com/61128045/214256548-0d55b5fd-f253-4c6b-827e-e75696ef5ad4.png)
