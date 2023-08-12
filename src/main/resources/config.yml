@@ -1,17 +1,23 @@
 message:
-  # if no huskhomessign.use
+  # if player don't have huskhomessign.use
   no-use-permission: "&cYou don't have permission to use warp signs."
+  # if the warp name on the sign can't teleport
   invalid-warp: "&cCan't find this destination."
+  # if HuskHomes can't teleport player to destination
+  teleport-error: "&cError happened while teleporting you to this destination. Error details have been printed to the console"
+# ------
+# Sign creation and display settings
+# ------
 sign:
-  # When the line of a sign changed to this key-word,
-  # we will try to create a warp sign. (If player has huskhomessign.create)
+  # Settings about how to create a warp sign: (If player has huskhomessign.create)
   create:
+    # If a new sign placed with following key word,
+    # we will convert this sign to a warp sign.
+    # Line's range is between 1-3, the line next to key word
     key-word: "[warp]"
-    # line's range is between 1-4
     key-word-line: 1
-  # If a sign has following key-word in line number,
-  # it will be seeing as a warp sign.
+  # Settings about how a valid warp sign look like
+  # PS: If player don't have huskhomessign.create, they can't write key-word too.
   use:
     key-word: "&1[Warp]"
     key-word-line: 2
-

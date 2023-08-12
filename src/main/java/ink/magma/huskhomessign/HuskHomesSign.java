@@ -1,8 +1,8 @@
 package ink.magma.huskhomessign;
 
 import net.william278.huskhomes.api.HuskHomesAPI;
-import net.william278.huskhomes.player.OnlineUser;
-import net.william278.huskhomes.teleport.TimedTeleport;
+import net.william278.huskhomes.teleport.TeleportationException;
+import net.william278.huskhomes.user.OnlineUser;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
@@ -22,6 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 public final class HuskHomesSign extends JavaPlugin implements Listener, CommandExecutor {
     public HuskHomesAPI huskHomesAPI;
+    public static JavaPlugin instance;
 
     String createKey;
     int createKeyLine;
@@ -31,8 +32,11 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
     @Override
     public void onEnable() {
         // Plugin startup logic
+        instance = this;
         saveDefaultConfig();
-        loadConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+        readConfig();
 
         if (Bukkit.getPluginManager().getPlugin("HuskHomes") != null) {
             this.huskHomesAPI = HuskHomesAPI.getInstance();
@@ -42,7 +46,7 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
         }
     }
 
-    private void loadConfig() {
+    private void readConfig() {
         createKey = getConfig().getString("sign.create.key-word", "[warp]");
         createKeyLine = getConfig().getInt("sign.create.key-word-line", 1) - 1;
         useKey = ChatColor.translateAlternateColorCodes('&', getConfig().getString("sign.use.key-word", "ConfigError"));
@@ -60,7 +64,7 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
         if (label.equals("huskhomessign") && args[0] != null && args[0].equals("reload")) {
             saveDefaultConfig();
             reloadConfig();
-            loadConfig();
+            readConfig();
             sender.sendMessage("[HuskHomesSign] Reloaded.");
             return true;
         }
@@ -125,10 +129,16 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
                     .thenAccept((result) -> {
                         if (result.isPresent()) {
                             OnlineUser user = huskHomesAPI.adaptUser(event.getPlayer());
-                            huskHomesAPI.teleportBuilder(user)
-                                    .setTarget(result.get())
-                                    .toTimedTeleport()
-                                    .thenAccept(TimedTeleport::execute);
+                            try {
+                                huskHomesAPI.teleportBuilder(user)
+                                        .target(result.get())
+                                        .toTimedTeleport()
+                                        .execute();
+                            } catch (TeleportationException e) {
+                                getLogger().warning(e.getMessage());
+                                getLogger().warning("Error happened while executing warp teleportation.");
+                                event.getPlayer().sendMessage(getConfig().getString("message.teleport-error", ""));
+                            }
                         } else {
                             event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
                                     getConfig().getString("message.invalid-warp", "")

@@ -63,8 +63,8 @@
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
         <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
+            <id>william278.net</id>
+            <url>https://repo.william278.net/releases</url>
         </repository>
     </repositories>
 
@@ -77,8 +77,8 @@
         </dependency>
         <dependency>
             <groupId>net.william278</groupId>
-            <artifactId>HuskHomes2</artifactId>
-            <version>3.2.1</version>
+            <artifactId>huskhomes</artifactId>
+            <version>4.4.5</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
