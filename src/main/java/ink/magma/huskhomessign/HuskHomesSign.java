@@ -106,7 +106,7 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerClickSign(PlayerInteractEvent event) {
         // if player right-click on a sign, and check permission
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -125,6 +125,10 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
             }
 
             if (sign.getLine(useKeyLine + 1).isEmpty()) return;
+
+            // avoid some plugin (or 1.20+) can let player edit sign by right click
+            event.setCancelled(true);
+
             huskHomesAPI.getWarp(sign.getLine(useKeyLine + 1))
                     .thenAccept((result) -> {
                         if (result.isPresent()) {
