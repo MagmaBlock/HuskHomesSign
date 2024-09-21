@@ -1,5 +1,6 @@
 package ink.magma.huskhomessign;
 
+import ink.magma.huskhomessign.commands.ReloadCommand;
 import net.william278.huskhomes.api.HuskHomesAPI;
 import net.william278.huskhomes.teleport.TeleportationException;
 import net.william278.huskhomes.user.OnlineUser;
@@ -7,20 +8,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.type.WallSign;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Objects;
 
-public final class HuskHomesSign extends JavaPlugin implements Listener, CommandExecutor {
+public final class HuskHomesSign extends JavaPlugin implements Listener {
     public HuskHomesAPI huskHomesAPI;
     public static JavaPlugin instance;
 
@@ -31,49 +30,27 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
 
     @Override
     public void onEnable() {
-        // Plugin startup logic
         instance = this;
         saveDefaultConfig();
         getConfig().options().copyDefaults(true);
         saveConfig();
         readConfig();
 
-        if (Bukkit.getPluginManager().getPlugin("HuskHomes") != null) {
-            this.huskHomesAPI = HuskHomesAPI.getInstance();
-            Bukkit.getPluginManager().registerEvents(this, this);
-        } else {
+        if (Bukkit.getPluginManager().getPlugin("HuskHomes") == null) {
             getLogger().warning("Can't find HuskHomes install on server, this addon will not work...");
+            return;
         }
+
+        this.huskHomesAPI = HuskHomesAPI.getInstance();
+        Bukkit.getPluginManager().registerEvents(this, this);
+        Objects.requireNonNull(Bukkit.getPluginCommand("huskhomessign")).setExecutor(new ReloadCommand(this));
+
     }
 
-    private void readConfig() {
-        createKey = getConfig().getString("sign.create.key-word", "[warp]");
-        createKeyLine = getConfig().getInt("sign.create.key-word-line", 1) - 1;
-        useKey = ChatColor.translateAlternateColorCodes('&', getConfig().getString("sign.use.key-word", "ConfigError"));
-        useKeyLine = getConfig().getInt("sign.use.key-word-line", 2) - 1;
-    }
-
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
-    }
-
-    @Override
-    @ParametersAreNonnullByDefault
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (label.equals("huskhomessign") && args[0] != null && args[0].equals("reload")) {
-            saveDefaultConfig();
-            reloadConfig();
-            readConfig();
-            sender.sendMessage("[HuskHomesSign] Reloaded.");
-            return true;
-        }
-        return false;
-    }
-
+    // Listen player create warp sign
     @EventHandler
     public void onSignPlace(SignChangeEvent event) {
-        // if sign has a key word
+        // If sign has key word
         if (String.valueOf(event.getLine(createKeyLine)).equals(createKey)) {
             if (!event.getPlayer().hasPermission("huskhomessign.create")) return;
             String warpName = event.getLine(createKeyLine + 1);
@@ -86,13 +63,11 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
             event.setLine(useKeyLine, useKey);
             event.setLine(useKeyLine + 1, warpName.trim());
 
-            // test this warp is valid, if not will send a message to creator
+            // Get the warp, if not exist, send a message to creator
             huskHomesAPI.getWarp(warpName.trim())
                     .thenAccept((result) -> {
                         if (result.isEmpty()) {
-                            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                    getConfig().getString("message.invalid-warp", "")
-                            ));
+                            event.getPlayer().sendMessage(getConfigMessage("invalid-warp"));
                         }
                     });
 
@@ -106,54 +81,83 @@ public final class HuskHomesSign extends JavaPlugin implements Listener, Command
         }
     }
 
+    // Protect warp sign from break by player without permission
+    @EventHandler
+    public void onSignBreak(BlockBreakEvent event) {
+        // Ignore events not Signs or WallSigns
+        if (!(event.getBlock().getBlockData() instanceof org.bukkit.block.data.type.Sign) && !(event.getBlock().getBlockData() instanceof WallSign)) {
+            return;
+        }
+        // If player has permission, ignore.
+        if (event.getPlayer().hasPermission("huskhomessign.break")) return;
+        // Player don't have break permission, check if the block is warp sign.
+        Sign sign = (Sign) event.getBlock().getState();
+
+        if (sign.getLine(useKeyLine).equals(useKey)) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(getConfigMessage("no-break-permission"));
+        }
+    }
+
+    // Listen player click warp sign
     @EventHandler(ignoreCancelled = true)
     public void onPlayerClickSign(PlayerInteractEvent event) {
-        // if player right-click on a sign, and check permission
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getClickedBlock() == null) return;
         if (!(event.getClickedBlock().getBlockData() instanceof org.bukkit.block.data.type.Sign) && !(event.getClickedBlock().getBlockData() instanceof WallSign)) {
             return;
         }
-
         Sign sign = (Sign) event.getClickedBlock().getState();
-        if (sign.getLine(useKeyLine).equals(useKey)) {
+        if (!event.getPlayer().hasPermission("huskhomessign.use")) {
+            event.getPlayer().sendMessage(getConfigMessage("no-use-permission"));
+            return;
+        }
+        // Is the sign a warp sign
+        if (!sign.getLine(useKeyLine).equals(useKey)) return;
+        // Is the sign contains warp name
+        if (sign.getLine(useKeyLine + 1).isEmpty()) return;
 
-            if (!event.getPlayer().hasPermission("huskhomessign.use")) {
-                event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("message.no-use-permission", "")));
+        // avoid some plugin (or 1.20+) can let player edit sign by right click
+        event.setCancelled(true);
+
+        // Do teleport
+        huskHomesAPI.getWarp(sign.getLine(useKeyLine + 1)).thenAccept((result) -> {
+            // If target warp point not found
+            if (result.isEmpty()) {
+                event.getPlayer().sendMessage(getConfigMessage("invalid-warp"));
                 return;
             }
 
-            if (sign.getLine(useKeyLine + 1).isEmpty()) return;
-
-            // avoid some plugin (or 1.20+) can let player edit sign by right click
-            event.setCancelled(true);
-
-            huskHomesAPI.getWarp(sign.getLine(useKeyLine + 1))
-                    .thenAccept((result) -> {
-                        if (result.isPresent()) {
-                            OnlineUser user = huskHomesAPI.adaptUser(event.getPlayer());
-                            try {
-                                huskHomesAPI.teleportBuilder(user)
-                                        .target(result.get())
-                                        .toTimedTeleport()
-                                        .execute();
-                            } catch (TeleportationException e) {
-                                getLogger().warning(e.getMessage());
-                                getLogger().warning("Error happened while executing warp teleportation.");
-                                event.getPlayer().sendMessage(getConfig().getString("message.teleport-error", ""));
-                            }
-                        } else {
-                            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                    getConfig().getString("message.invalid-warp", "")
-                            ));
-                        }
-                    });
-
-        }
+            OnlineUser user = huskHomesAPI.adaptUser(event.getPlayer());
+            try {
+                huskHomesAPI.teleportBuilder(user)
+                        .target(result.get())
+                        .toTimedTeleport()
+                        .execute();
+            } catch (TeleportationException e) {
+                // Warming up
+                if (e.getType().equals(TeleportationException.Type.ALREADY_WARMING_UP)) return;
+                // Other errors
+                getLogger().warning(e.getMessage());
+                getLogger().warning("Error happened while executing warp teleportation.");
+                event.getPlayer().sendMessage(getConfigMessage("teleport-error"));
+            }
+        });
 
 
     }
 
+    public void readConfig() {
+        createKey = getConfig().getString("sign.create.key-word", "[warp]");
+        createKeyLine = getConfig().getInt("sign.create.key-word-line", 1) - 1;
+        useKey = ChatColor.translateAlternateColorCodes('&', getConfig().getString("sign.use.key-word", "ConfigError"));
+        useKeyLine = getConfig().getInt("sign.use.key-word-line", 2) - 1;
+    }
 
+    private String getConfigMessage(String key) {
+        return ChatColor.translateAlternateColorCodes('&',
+                getConfig().getString("message." + key, "")
+        );
+    }
 }
