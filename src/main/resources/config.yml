@@ -5,6 +5,8 @@ message:
   invalid-warp: "&cCan't find this destination."
   # if HuskHomes can't teleport player to destination
   teleport-error: "&cError happened while teleporting you to this destination. Error details have been printed to the console"
+  # if player don't have huskhomessign.break
+  no-break-permission: "&cYou don't have permission to break warp signs."
 # ------
 # Sign creation and display settings
 # ------
