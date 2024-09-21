@@ -6,7 +6,7 @@
 
     <groupId>ink.magma</groupId>
     <artifactId>HuskHomesSign</artifactId>
-    <version>1.1.1</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <name>HuskHomesSign</name>
@@ -76,9 +76,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>net.william278</groupId>
-            <artifactId>huskhomes</artifactId>
-            <version>4.4.5</version>
+            <groupId>net.william278.huskhomes</groupId>
+            <artifactId>huskhomes-bukkit</artifactId>
+            <version>4.7</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
