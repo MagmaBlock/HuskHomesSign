@@ -1,16 +1,20 @@
 # HuskHomesSign
-An addon for HuskHomes to allow players warp by a sign
+An addon for HuskHomes that allows players to warp by signs.
 
-## Use
-Install HuskHomes and drop this plugins to you plugins dir.
+## Usage
+Install HuskHomes and drop this plugin into your `plugins` directory.
 
-To create a warp sign, you must have permission `huskhomessign.create`
+To create a warp sign, you must have the `huskhomessign.create` permission.
 
-Writing "[warp]" on the first line, and the warp name on the next line. A warp sign created.
+Write `[warp]` on the first line and the warp name on the second line to create a warp sign.
 
-Player with `huskhomessign.use` will be able to use sign to teleport.
+Players with the `huskhomessign.use` permission will be able to use the sign to teleport.
 
-## Custom
-Messages and Sign displays can be customized in config.yml.
+By default, player without `huskhomessign.break` permission will not be able to break warp signs.
+
+Use `/huskhomessign reload` to reload the config.yml file, require `huskhomessign.admin`.
+
+## Customization
+Messages and sign displays can be customized in the config.yml file.
 
 ![image](https://user-images.githubusercontent.com/61128045/214256548-0d55b5fd-f253-4c6b-827e-e75696ef5ad4.png)
