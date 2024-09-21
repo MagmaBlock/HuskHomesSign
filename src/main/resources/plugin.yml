@@ -12,3 +12,13 @@ commands:
 permissions:
   huskhomessign.admin:
     default: op
+    description: Allows the player to reload the config
+  huskhomessign.create:
+    default: op
+    description: Allows the player to create a warp sign
+  huskhomessign.break:
+    default: op
+    description: Allows the player to break a warp sign
+  huskhomessign.use:
+    default: true
+    description: Allows the player to use a warp sign
